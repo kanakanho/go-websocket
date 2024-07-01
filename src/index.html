@@ -1,0 +1,66 @@
+<html>
+  <head>
+    <title>Chat powered by Melody</title>
+  </head>
+
+  <style>
+    #chat {
+      text-align: left;
+      color: #ffffff;
+      background: #113131;
+      width: 400px;
+      min-height: 300px;
+      padding: 10px;
+      font-family: "Lucida Grande", "Hiragino Kaku Gothic ProN", "ヒラギノ角ゴ ProN W3", "Meiryo", "メイリオ",
+        sans-serif;
+      font-size: small;
+    }
+  </style>
+
+  <body>
+    <main>
+      <h3>Sample Chat</h3>
+      <pre id="chat"></pre>
+      <label id="title"></label>
+      <input placeholder="say something" id="text" type="text" />
+    </main>
+
+    <script>
+      // websocketコネクション作成
+      var ws = new WebSocket("ws://" + window.location.host + "/ws");
+
+      // 適当なユーザー名を定義
+      var name = "Guest-" + Math.floor(Math.random() * 1000);
+      var chat = document.getElementById("chat");
+      document.getElementById("title").innerText = name + ": ";
+
+      // 現在時間を取得
+      var now = function () {
+        return new Date().toLocaleString();
+      };
+
+      // サーバーから他ユーザーのメッセージが送られてきた際に、チャット画面へ表示させる。
+      ws.onmessage = function (msg) {
+        console.log(msg);
+        try {
+          msgJson = JSON.parse(msg.data);
+          print(msgJson);
+        } catch (e) {
+          console.error(e);
+          return;
+        }
+        var line = now() + " : " + msg.data + "\n";
+        chat.innerText += line;
+      };
+
+      // 入力フォームにテキストを入力してEnterキーが押された時、入力内容をサーバーへ送信する。
+      var text = document.getElementById("text");
+      text.onkeydown = function (e) {
+        if (e.keyCode === 13 && text.value !== "") {
+          ws.send(text.value);
+          text.value = "";
+        }
+      };
+    </script>
+  </body>
+</html>
